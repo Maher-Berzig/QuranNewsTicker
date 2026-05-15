@@ -1,0 +1,29 @@
+# RSS News Ticker with Holy Quran - Python Dependencies
+# 
+# Installation:
+#   pip install -r requirements.txt
+#
+# For PyInstaller build (optional):
+#   pip install pyinstaller
+
+# Core GUI Framework
+PyQt5>=5.15.0
+
+# RSS/Atom Feed Parsing
+feedparser>=6.0.0
+
+# Google Translate API
+googletrans==4.0.0rc1
+
+# HTTP Requests (required by feedparser and googletrans)
+requests>=2.25.0
+
+# XML Processing (standard library, but ensure lxml is available for performance)
+lxml>=4.6.0; platform_python_implementation=='CPython'
+
+# Optional: For better SVG rendering support in separators and tray icons
+# PyQt5 already includes QtSvg, no additional package needed
+
+# Development & Build Tools (uncomment if needed)
+# pyinstaller>=4.0
+# pyqt5-tools>=5.15.0  # Qt Designer and other tools
