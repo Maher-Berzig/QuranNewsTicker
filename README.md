@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 4. Download the Quran XML file:
    - Visit [Tanzil.net](https://tanzil.net) to download the Quran XML file
-   - Place it in the application directory as `quran.xml`
+   - Place it in the application directory as `quran.xml` or inside _internal folder
 
 5. Run the application:
 ```bash
@@ -204,17 +204,11 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 This project is licensed under the GNU General Public License v3.0 (GPLv3).
 
 ```
-Copyright © 2026 Maher Berzig
+QuranNewsTicker is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. 
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+QuranNewsTicker is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+See the GNU General Public License for more details.You should have received a copy of the GNU General Public License along with QuranNewsTicker. If not, see https://www.gnu.org/licenses/.
 ```
 
 ## Support
@@ -225,4 +219,4 @@ GNU General Public License for more details.
 
 ---
 
-**Built with** Python • PyQt5 • feedparser • googletrans • Holy Quran XML
+**Built with** Holy Quran XML • Python • PyQt5 • feedparser • googletrans
