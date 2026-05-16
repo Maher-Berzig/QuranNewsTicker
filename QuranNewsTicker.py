@@ -29,6 +29,58 @@ def get_config_dir():
     return config_dir
 
 
+# ── Windows startup registry helpers ─────────────────────────────────────────
+_STARTUP_REG_KEY  = r"Software\Microsoft\Windows\CurrentVersion\Run"
+_STARTUP_APP_NAME = "RSSNewsTicker"
+
+
+def _get_app_exe_path():
+    """Return the path that should be written to the registry."""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller bundle: use the actual .exe
+        return sys.executable
+    else:
+        # Running as a plain .py script
+        return f'"{sys.executable}" "{os.path.abspath(__file__)}"'
+
+
+def get_startup_enabled():
+    """Return True if the app is registered to run at Windows startup."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_REG_KEY, 0,
+                             winreg.KEY_READ)
+        winreg.QueryValueEx(key, _STARTUP_APP_NAME)
+        winreg.CloseKey(key)
+        return True
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def set_startup_enabled(enable: bool):
+    """Add or remove the app from the Windows startup registry key."""
+    if sys.platform != "win32":
+        return
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, _STARTUP_REG_KEY, 0,
+                             winreg.KEY_SET_VALUE)
+        if enable:
+            winreg.SetValueEx(key, _STARTUP_APP_NAME, 0,
+                              winreg.REG_SZ, _get_app_exe_path())
+        else:
+            try:
+                winreg.DeleteValue(key, _STARTUP_APP_NAME)
+            except FileNotFoundError:
+                pass
+        winreg.CloseKey(key)
+    except Exception:
+        pass
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import json
@@ -142,6 +194,7 @@ TRANSLATIONS = {
         'feature_4': '✓ Multiple display modes (Sequential, Round-Robin, Random)',
         'feature_5': '✓ System tray integration with quick actions',
         'copyright': 'Copyright © 2026: GPLv3 ',
+        'startup_windows': 'Launch automatically with Windows',
     },
     'french': {
         'config': '⚙️ Configuration',
@@ -237,6 +290,7 @@ TRANSLATIONS = {
         'feature_4': '✓ Modes d\'affichage multiples (Séquentiel, Alterné, Aléatoire)',
         'feature_5': '✓ Intégration dans la barre système avec actions rapides',
         'copyright': 'Copyright © 2026: GPLv3 ',
+        'startup_windows': 'Lancer automatiquement avec Windows',
     },
     'arabic': {
         'config': '⚙️ الإعدادات',
@@ -333,6 +387,7 @@ TRANSLATIONS = {
         'feature_4': '✓ أنماط عرض متعددة (تسلسلي، متناوب، عشوائي)',
         'feature_5': '✓ التكامل مع شريط النظام مع إجراءات سريعة',
         'copyright': 'حقوق النشر © 2026: GPLv3',
+        'startup_windows': 'التشغيل التلقائي مع ويندوز',
     }
 }
 
@@ -1218,7 +1273,7 @@ class ConfigDialog(QDialog):
         self.speed_slider.setMaximum(200)
         self.speed_slider.setTickPosition(QSlider.TicksBelow)
         self.speed_slider.setTickInterval(10)
-        saved_speed = self.config.get('scroll_speed', 1.0)
+        saved_speed = self.config.get('scroll_speed', 4.0)
         if isinstance(saved_speed, int):
             saved_speed = float(saved_speed)
         self.speed_slider.setValue(int(saved_speed * 10))
@@ -1250,6 +1305,18 @@ class ConfigDialog(QDialog):
         desc_label = QLabel(f"<i>{self.tr['cycle_spacing_desc']}</i>")
         desc_label.setStyleSheet("color: #666; font-size: 11px;")
         layout.addWidget(desc_label)
+
+        # ── Windows startup ───────────────────────────────────────────────────
+        if sys.platform == "win32":
+            line = QFrame()
+            line.setFrameShape(QFrame.HLine)
+            line.setFrameShadow(QFrame.Sunken)
+            layout.addWidget(line)
+
+            self.startup_checkbox = QCheckBox(self.tr['startup_windows'])
+            self.startup_checkbox.setChecked(get_startup_enabled())
+            layout.addWidget(self.startup_checkbox)
+        # ─────────────────────────────────────────────────────────────────────
 
         layout.addStretch()
         widget.setLayout(layout)
@@ -1358,7 +1425,7 @@ class ConfigDialog(QDialog):
         
         license_layout = QHBoxLayout()
         license_layout.addWidget(QLabel(f"<b>{self.tr['license']}:</b>"))
-        license_layout.addWidget(QLabel("GPLv3 License"))
+        license_layout.addWidget(QLabel("MIT License"))
         license_layout.addStretch()
         info_layout.addLayout(license_layout)
         
@@ -1531,6 +1598,11 @@ class ConfigDialog(QDialog):
         self.quran_sura_spin.setValue(10)
         self.quran_mode_combo.setEnabled(False)
         self.quran_sura_spin.setEnabled(False)
+
+        # ── Windows startup ───────────────────────────────────────────────────
+        if sys.platform == "win32" and hasattr(self, 'startup_checkbox'):
+            self.startup_checkbox.setChecked(False)
+        # ─────────────────────────────────────────────────────────────────────
     
     def get_config(self):
         feed_names = []
@@ -1607,7 +1679,12 @@ class ConfigDialog(QDialog):
             self.config['scroll_direction'] = 'rtl'
         else:
             self.config['scroll_direction'] = 'auto'
-        
+
+        # ── Windows startup ───────────────────────────────────────────────────
+        if sys.platform == "win32" and hasattr(self, 'startup_checkbox'):
+            set_startup_enabled(self.startup_checkbox.isChecked())
+        # ─────────────────────────────────────────────────────────────────────
+
         return self.config
 
 
